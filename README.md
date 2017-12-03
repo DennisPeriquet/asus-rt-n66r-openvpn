@@ -8,9 +8,10 @@ Here's how I set it up to use TLS authentication.
 
 # Basic Setup
 
-The basic setup is pretty straightforward.  Just go to the correct screens, activate
-OpenVPN server and add a user and password.  There is nothing hard about doing that
-and so this README does not focus on that.
+The basic setup for OpenVPN on the ASIS router is pretty straightforward.  Just
+go to Advanced Settings, VPN, VPN Server, OpenVPN. Activate OpenVPN server and
+add a user/password.  There is nothing difficult about doing that and so this
+README does not focus on that.
 
 # Setup the Certificates
 
@@ -18,11 +19,11 @@ To use TLS authentication, we need to setup a CA, certificates, etc.  This is no
 straightforward (unless you've been doing this a while).  So I'll concentrate this
 README on that.
 
-In order to setup my openVPN server I need to do these:
+In order to setup my openVPN server I need to generate:
 
-* Generate a CA certificate and key; I will use self signed.
-* Generate a Server certificate and key signed by my CA; this will be for the OpenVPN server.
-* Generate a client certificate and key signed by my CA; this will be used for my OpenVPN clients.
+* a CA certificate and key; I will use self signed.
+* a client certificate and key signed by my CA; this will be used for my OpenVPN clients.
+* a Server certificate and key signed by my CA; this will be for the OpenVPN server.
 
 ## Generate the CA certificate and key
 
@@ -200,3 +201,52 @@ subject=/C=US/ST=New Hampshire/L=Manchester/O=DP Networks, Inc./OU=Server Divisi
 Getting CA Private Key
 ```
 
+# Configure the ASUS router with the certificates just created
+
+Once you have certificates, you can now configure them on the OpenVPN server and client.
+
+## Configure the OpenVPN server with the Server certificate
+
+On the ASUS router, navigate to Advanced Settings, VPN, VPN Server, OpenVPN.  At VPN Details,
+select Advanced Settings.  At Authorization Mode, select TLS.  Then click on the link that says
+"Content modification of Keys & Certification".
+
+Here, you will see these fields.  For each one, remove what is currently (if there is anything
+there) and fill in with the indicated contents:
+
+* Certificate Authority: paste the contents of ``ca.pem``
+* Server Certificate: paste the contents of ``server.pem``
+* Server Key: paste the contents of ``server.key``
+* Diffie Hellman parameters: leave what is there (defaults)
+* Certificate Revocation List (Optional): leave blank
+
+Click Save to save what you just pasted.
+
+Click Apply to apply these settings.
+
+## Configure the OpenVPN client with the Client certificate
+
+At the VPN Details on the ASUS router UI, select General.  Click EXPORT.
+
+You will get a file called ``client.ovpn``.
+
+Edit the ``client.ovpn`` file.
+
+Change the line that says ``remote x.x.x.x 1194`` so that the x.x.x.x is the IP address of your
+OpenVPN server reachable from the OpenVPN clients.  This could be the Public IP address of your
+cable modem and might need to be configured with port forwarding for port 1194.
+
+Comment out the ``ns-cert-type server``.  Do this by putting a semi-colon before it
+like ``; ns-cert-type server``.
+
+In the section marked by ``<cert>`` and ``</cert>``, paste the contents of the ``client.pem`` file.
+
+In the section marked by ``<key>`` and ``</key>``, paste the contents of the ``client.key`` file.
+
+Save the file.  Add this file into your OpenVPN client (how to do that depends on your OpenVPN
+client.  On MacOS, you just drag it into the OpenVPN client UI.
+
+# Test your OpenVPN client
+
+You should be able to get onto your VPN by activating the VPN client and entering your user
+credentials.  If not you will have troubleshoot.
