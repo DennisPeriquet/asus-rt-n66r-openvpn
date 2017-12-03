@@ -1,10 +1,10 @@
 # OpenVPN server setup for ASUS RT-N66R
 
-I have an ASUS RT-N66R which is severa years old as of this writing. It's been
+I have an ASUS RT-N66R which is several years old as of this writing. It's been
 a nice router/WIFI-AP and one of its features is that is can serve as an OpenVPN
 server.
 
-Here's how I set it up to use TLS authentication.
+Here's how I set it up to use TLS authentication and using self signed certificates.
 
 # Basic Setup
 
