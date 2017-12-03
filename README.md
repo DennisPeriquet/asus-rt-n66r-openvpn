@@ -56,9 +56,9 @@ Common Name (e.g. server FQDN or YOUR name) []:dp-networks.com
 Email Address []:dperique@dp-networks.com
 ```
 
-When done with the abovde steps, you should have a ``ca.key`` and ``ca.pem`` file.
+When done with the above steps, you should have a ``ca.key`` and ``ca.pem`` file.
 
-We can look at the pem files to confirm it looks good:
+We can look at the pem file to confirm it looks good:
 
 ```
 $ openssl x509 -in ca.pem -text -noout
@@ -79,7 +79,7 @@ Certificate:
 ...
 ```
 
-## Generate the Client certificate and key
+## Generate the Client key and certificate
 
 First generate the client key.  Note how this command is identical the one used to generate the
 CA key.  I like each OpenVPN client to have its own key so I will number it starting with 1.
@@ -119,7 +119,7 @@ An optional company name []:
 
 This produces a file called ``client1.csr``.
 
-Now generate the certificate for client number 1:
+Now generate the certificate for client number 1 using the key and client1 CSR just created.
 
 ```
 $ openssl x509 -req -in client1.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client1.pem -days 3650 -sha256
@@ -128,7 +128,9 @@ subject=/C=US/ST=New Hampshire/L=Nashua/O=DP Networks, Inc./OU=Client Testing Di
 Getting CA Private Key
 ```
 
-This produces the ``client1.key`` and ``client1.pem`` files.  We can look at the certificate like this:
+You should now have the ``client1.key`` and ``client1.pem`` files.
+
+We can look at the certificate  (client1.pem) to confirm it looks good like this:
 
 ```
 $ openssl x509 -in client1.pem -text -noout
@@ -148,5 +150,53 @@ Certificate:
             RSA Public Key: (2048 bit)
                 Modulus (2048 bit):
 ...
+```
+
+## Generate the Server key and certificate
+
+Essentially, we repeat the process we did for client number 1 above.
+
+Generate a key for the Server.
+
+```
+$ openssl genrsa -out server.key 2048
+Generating RSA private key, 2048 bit long modulus
+...........................+++
+...................................................................................................................+++
+e is 65537 (0x10001)
+```
+
+Generate a CSR for the Server:
+
+```
+$ openssl req -new -key server.key -out server.csr
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:US
+State or Province Name (full name) [Some-State]:New Hampshire
+Locality Name (eg, city) []:Manchester
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:DP Networks, Inc.
+Organizational Unit Name (eg, section) []:Server Division
+Common Name (e.g. server FQDN or YOUR name) []:server.dp-networks.com
+Email Address []:server@dp-networks.com
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:server
+An optional company name []:
+```
+
+Generate the certificate for the Server using the server CSR and key:
+
+```
+$ openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 3650 -sha256
+Signature ok
+subject=/C=US/ST=New Hampshire/L=Manchester/O=DP Networks, Inc./OU=Server Division/CN=server.dp-networks.com/emailAddress=server@dp-networks.com
+Getting CA Private Key
 ```
 
