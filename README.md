@@ -6,6 +6,9 @@ server.
 
 Here's how I set it up to use TLS authentication and using self signed certificates.
 
+This was done on a Mac using the open source openssl tool but should be very similar
+on Linux machines.
+
 # Basic Setup
 
 The basic setup for OpenVPN on the ASIS router is pretty straightforward.  Just
