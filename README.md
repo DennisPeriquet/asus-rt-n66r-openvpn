@@ -295,7 +295,8 @@ openssl req -new -key server.key -out server.csr
 openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 3650 -sha256
 ```
 
-Configure your router with the newly generated ca cert and server cert/key
+Configure your router with the newly generated ca cert and server cert/key.
+
 To generate for client N:
 
 ```
