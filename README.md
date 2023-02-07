@@ -117,7 +117,7 @@ Email Address []:client1@dp-networks.com
 
 Please enter the following 'extra' attributes
 to be sent with your certificate request
-A challenge password []:client1
+A challenge password []:client1 <-- you can make this as strong as you want
 An optional company name []:
 ```
 
@@ -191,7 +191,7 @@ Email Address []:server@dp-networks.com
 
 Please enter the following 'extra' attributes
 to be sent with your certificate request
-A challenge password []:server
+A challenge password []:server    <-- you can make this as strong as you want
 An optional company name []:
 ```
 
@@ -242,9 +242,11 @@ cable modem and might need to be configured with port forwarding for port 1194.
 Comment out the ``ns-cert-type server``.  Do this by putting a semi-colon before it
 like ``; ns-cert-type server``.
 
-In the section marked by ``<cert>`` and ``</cert>``, paste the contents of the ``client.pem`` file.
+For the next two steps, N=1.  If you created more client cert/key pairs, increment N.
 
-In the section marked by ``<key>`` and ``</key>``, paste the contents of the ``client.key`` file.
+In the section marked by ``<cert>`` and ``</cert>``, paste the contents of the ``clientN.pem`` file.
+
+In the section marked by ``<key>`` and ``</key>``, paste the contents of the ``clientN.key`` file.
 
 Save the file.  Add this file into your OpenVPN client (how to do that depends on your OpenVPN
 client.  On MacOS, you just drag it into the OpenVPN client UI.
@@ -253,3 +255,64 @@ client.  On MacOS, you just drag it into the OpenVPN client UI.
 
 You should be able to get onto your VPN by activating the VPN client and entering your user
 credentials.  If not you will have troubleshoot.
+
+# Summary
+
+The above is summarized below to make creating certs and keys faster to be conducive to
+frequent rotations.
+
+TIP: save your challenge password and credentials in a reputable password manager.
+
+```
+# Generate ca key
+openssl genrsa -out ca.key 2048
+
+# Generate the ca cert
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 3650 -out ca.pem
+
+# View the ca cert
+openssl x509 -in ca.pem -text -noout
+
+# Generate key for client1
+openssl genrsa -out client1.key 2048
+
+# Generate csr for client1
+openssl req -new -key client1.key -out client1.csr
+
+# Generate the cert for client 1 using the client1 csr
+openssl x509 -req -in client1.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client1.pem -days 3650 -sha256
+
+# View the client1 cert
+openssl x509 -in client1.pem -text -noout
+
+# Generate the server key
+openssl genrsa -out server.key 2048
+
+# Generate a csr for the server
+openssl req -new -key server.key -out server.csr
+
+# Generate the cert for server using the server csr
+openssl x509 -req -in server.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out server.pem -days 3650 -sha256
+```
+
+Configure your router with the newly generated ca cert and server cert/key
+To generate for client N:
+
+```
+export N=2
+# Generate key for client${N}
+openssl genrsa -out client${N}.key 2048
+
+# Generate csr for clientN
+openssl req -new -key client${N}.key -out client${N}.csr
+
+# Generate the cert for client N using the clientN csr
+openssl x509 -req -in client${N}.csr -CA ca.pem -CAkey ca.key -CAcreateserial -out client${N}.pem -days 3650 -sha256
+
+# Copy the existing config so you can tweak it
+cp home-vpn1.ovpn home-vpn2.ovpn
+vi home-vpn2.ovpn
+  insert the client2.pem between <cert> and </cert>
+  insert the client2.key between <key> and </key>
+```
+
